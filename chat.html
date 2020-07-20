@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta chatset="utf-8" />
+	<title>Chat Room</title>
+	<link rel="stylesheet" href="chat.css">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+	<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.css" type="text/css"
+		rel="stylesheet">
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+	<!-- jQuery library -->
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+	<!-- Popper JS -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+	<!-- Latest compiled JavaScript -->
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
+</head>
+
+<body>
+	<div class="container">
+		<h3 class=" text-center">Messaging</h3>
+		<div class="messaging">
+			<div class="inbox_msg">
+				<div class="inbox_people">
+					<div class="headind_srch">
+						<div class="recent_heading">
+							<h4>Friends List</h4>
+						</div>
+						<div class="srch_bar">
+							<div class="stylish-input-group">
+								<input type="text" class="search-bar" id="input-email" placeholder="Add a new friend">
+								<span class="input-group-addon">
+								</span> </div>
+							<button type="button" id="search"> <i class="fa fa-search" aria-hidden="true"></i> </button>
+						</div>
+					</div>
+
+					<div class="inbox_chat">
+
+
+					</div>
+					<script>
+						//get the friends list
+						//get current user
+						var currentUserEmail = window.localStorage.getItem('chat-user-email');
+						$.ajax({
+							url: 'https://chatroom-e4561.firebaseio.com/chatIdentifier.json',
+							type: 'GET',
+							contentType: 'application/json',
+							async: false,
+							success: function (data) {
+								var chatIDs = data;
+								for (var chatID in chatIDs) {
+									var temp = chatIDs[chatID].users;
+									var user1 = temp[0];
+									var user2 = temp[1];
+									if (user1 === currentUserEmail || user2 === currentUserEmail) {
+										for (let j = 0; j < 2; j++) {
+											if (temp[j] != currentUserEmail) {
+												let chatPeople = '<div class="chat_list" id="' + chatID + '"><div class="chat_people"><div class="chat_img"> <img src="https://ptetutorials.com/images/user-profile.png" alt="sunil"> </div>' +
+													'<div class="chat_ib"><h5 id="chat-oppo">' + temp[j] + '<span class="chat_date"></span></h5>' +
+													'<p></p>' +
+													'</div></div></div>';
+												$('.inbox_chat').append(chatPeople);
+											}
+										}
+									}
+								}
+							}
+						});			
+					</script>
+				</div>
+				<div class="mesgs">
+					<div class="msg_history">
+
+
+
+
+					</div>
+
+					<div class="type_msg">
+						<div class="input_msg_write">
+							<input type="text" class="write_msg" id="message" placeholder="Type a message" />
+							<button class="msg_send_btn" id="send" type="button"><i class="fa fa-paper-plane-o"
+									aria-hidden="true"></i></button>
+
+						</div>
+					</div>
+				</div>
+
+				<script>
+					//open a specific chat room
+					var currentUserEmail = window.localStorage.getItem('chat-user-email');
+					var retrievChatID;
+					var previousOpenedChatID;
+					var previousSettedInterval;
+
+					$(".chat_list").click(function (event) {
+						$(".msg_history").empty();
+						retrievChatID = event.currentTarget.id;
+
+						if(previousOpenedChatID) {
+							$('#' + previousOpenedChatID).css("background-color", "white");
+						}
+						$('#' + retrievChatID).css("background-color", "gray");
+						previousOpenedChatID = retrievChatID;
+						if (previousSettedInterval) {
+							clearInterval(previousSettedInterval);
+						}
+						previousSettedInterval = setInterval(function(){ retrieve(retrievChatID) }, 1000);
+					});
+					//if send message
+					$("#send").click(function () {
+						$(".msg_history").empty();
+						//retrievChatID = event.currentTarget.id;
+						store(retrievChatID);
+
+						retrieve(retrievChatID);
+					});
+
+
+
+
+					//display message
+					function retrieve(cid) {
+						$.ajax({
+							url: 'https://chatroom-e4561.firebaseio.com/chatContent/' + cid + '.json',
+							type: 'GET',
+							contentType: 'application/json',
+							async: false,
+							success: function (data) {
+								var chatsArray = Object.values(data);
+								$(".msg_history").empty();
+								for (var chat in chatsArray) {
+									var retrievedUser = Object.keys(chatsArray[chat])[0];
+									var retrievedContent = Object.values(chatsArray[chat])[0].content;
+									if (retrievedUser === currentUserEmail.replace('.', ',')) {
+										let outMessage = '<div class="outgoing_msg"><div class="sent_msg"><p>' +
+											retrievedContent + '</p></div></div>';
+										$('.msg_history').append(outMessage);
+									} else {
+										let incomeMessage = '<div class="incoming_msg"><div class="incoming_msg_img">' +
+											'<img src="https://ptetutorials.com/images/user-profile.png" alt="sunil"> </div>' +
+											'<div class="received_msg"><div class="received_withd_msg"><p>' +
+											retrievedContent + '</p></div></div></div>';
+										$('.msg_history').append(incomeMessage);
+									}
+								}
+								
+								$(".msg_history").scrollTop($(".msg_history")[0].scrollHeight);
+							}
+						});
+					}
+
+					//store chatting message
+					function store(cid) {
+						var currentUserEmail = window.localStorage.getItem('chat-user-email');
+						var data = {};
+						data[currentUserEmail.replace('.', ',')] = { content: $("#message").val() };
+
+						$.ajax({
+							url: 'https://chatroom-e4561.firebaseio.com/chatContent/' + cid + '.json',
+							type: 'POST',
+							contentType: 'application/json',
+							data: JSON.stringify(data),
+							async: false
+							//success: function(response) {
+							//	alert("begin chatttttt");
+							//}
+						});
+					}
+
+				</script>
+
+
+			</div>
+
+
+		</div>
+	</div>
+
+	<script>
+		//get current user
+		var currentUserEmail = window.localStorage.getItem('chat-user-email');
+		// add a new friend
+		var inputEmail = $('#input-email').val();
+		function addFriend(friendEmail) {
+			var pair = { "users": [currentUserEmail, friendEmail] };
+
+			$.ajax({
+				url: 'https://chatroom-e4561.firebaseio.com/chatIdentifier.json',
+				type: 'POST',
+				contentType: 'application/json',
+				data: JSON.stringify(pair),
+				async: false,
+				success: function (response) {
+					alert('Friend added sucessful');
+				},
+				error: function (response) {
+					console.log(response);
+				}
+
+			});
+		}
+		$("#search").click(function () {
+			var inputEmail = $('#input-email').val();
+			$.ajax({
+				url: 'https://chatroom-e4561.firebaseio.com/users.json',
+				type: 'GET',
+				contentType: 'application/json',
+				async: false,
+				success: function (data) {
+					var usersArray = Object.values(data);
+					for (let i = 0; i < usersArray.length; i++) {
+						if (usersArray[i].email == inputEmail) {
+							addFriend(inputEmail);
+						}
+					}
+
+				}
+			});
+		});
+
+	</script>
+
+
+
+</body>
+
+</html>
