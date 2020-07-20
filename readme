@@ -1,2 +1,6 @@
-The chatting page style(some html and css) is from
-https://bootsnipp.com/snippets/1ea0N 
+main.html is the start page.
+Open main.html using Google Chrome.
+Users could only add existing users as their friends.
+Databases are managed on Google Firebase.
+
+The chatting page style(some html and css) is from https://bootsnipp.com/snippets/1ea0N.
