@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8"/>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+		<title>Chat Room</title>
+	</head>
+	
+	<body>
+		
+		<img src="ProfGate.jpg" alt="GWU" />
+		<hr>
+		
+		
+		<h1>Welcome to the Chatting Application</h1>
+		<br/><br/>
+		
+		<p>
+		Email: <input type="text" name="account" id="account" /> <br/>
+		Password: <input type="password" name="pass" id="pass" /> <br/>
+		<input type="button" id="submit" name="submit" value="Submit" /><br/><br/>
+		</p>
+		<hr>
+		
+		<p>
+			If you have any questions about our program, please contact the system administrator at
+			<a href="mailto:your address">gracedu@gwmail.gwu.edu</a>
+		</p>
+		
+		<script>
+				
+			$("#submit").click(function(){
+				var data = {email: $("#account").val(), password: $("#pass").val(), returnSecureToken: true};
+
+				//add to authentication
+				$.ajax({
+					url: 'https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=AIzaSyAq2elpPzQXq1djYDmjdPw6-H3KvOH7-Hg',
+					type: 'POST',
+					contentType: 'application/json',
+					data: JSON.stringify(data),
+					async: false,
+					success: function(response) {
+						
+						//add new users to database
+						$.ajax({
+						url: 'https://chatroom-e4561.firebaseio.com/users.json',
+						type: 'POST',
+						contentType: 'application/json',
+						data: JSON.stringify({email: $("#account").val()}),
+						
+						success : function(response) {
+							alert("Registration successful!");
+							window.location.href = 'main.html';
+						}
+						});
+
+						
+					},
+					error: function(xhr, ajaxOptions, thrownError){
+						alert("Fail to register! Account exists");
+						console.log(data);
+						console.log(xhr.responseText);
+					}
+				});
+				
+				
+
+
+				
+			});
+			
+		</script>
+		
+
+		
+		
+		
+		
+	</body>
+</html>
